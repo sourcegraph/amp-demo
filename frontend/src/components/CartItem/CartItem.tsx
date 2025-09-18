@@ -11,10 +11,14 @@ import {
 } from "@chakra-ui/react";
 import { ChangeEvent } from "react";
 import { BiTrash as TrashIcon } from "react-icons/bi";
-import { BsHeart as HeartIcon, BsHeartFill as HeartIconFill } from "react-icons/bs";
+import {
+  BsHeart as HeartIcon,
+  BsHeartFill as HeartIconFill,
+} from "react-icons/bs";
 import { Link as RouterLink } from "react-router-dom";
 import { ProductInCart, getImageUrl } from "../../context/GlobalState";
 import { useGlobalContext } from "../../context/useGlobalContext";
+import { useCurrency } from "../../context/CurrencyContext";
 import MUISkeleton from "../MUI/MUISkeleton";
 import MotionBox from "../MotionBox";
 
@@ -25,6 +29,7 @@ type Props = {
 const CartItem = ({ product }: Props) => {
   const toast = useToast();
   const { setQuantity, deleteFromCart, toggleSaved } = useGlobalContext();
+  const { formatPrice } = useCurrency();
   const subTotal = +product.price * +product.quantity;
 
   return (
@@ -155,7 +160,7 @@ const CartItem = ({ product }: Props) => {
           justify="center"
           align="center"
         >
-          ${product.price}
+          {formatPrice(product.price)}
         </Flex>
         <Flex
           w="30%"
@@ -165,7 +170,7 @@ const CartItem = ({ product }: Props) => {
           align="center"
           color="appBlue.600"
         >
-          ${subTotal.toFixed(2)}
+          {formatPrice(subTotal)}
         </Flex>
       </MotionBox>
     </MotionBox>

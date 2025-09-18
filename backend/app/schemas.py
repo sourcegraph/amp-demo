@@ -1,6 +1,18 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
+from decimal import Decimal
+from .fx import CurrencyCode
+
+class CurrencyRateBase(BaseModel):
+    code: str = Field(..., min_length=3, max_length=3, description="Currency code like EUR, GBP")
+    rate_to_usd: Decimal = Field(..., gt=0, decimal_places=6, description="Exchange rate to USD")
+    
+class CurrencyRateCreate(CurrencyRateBase):
+    pass
+
+class CurrencyRateRead(CurrencyRateBase):
+    fetched_at: datetime
 
 class CategoryBase(BaseModel):
     name: str = Field(..., min_length=1)
@@ -22,7 +34,7 @@ class CategoryRead(CategoryBase):
 class ProductBase(BaseModel):
     title: str = Field(..., min_length=1)
     description: str = Field(..., min_length=1)
-    price: float = Field(..., gt=0)
+    price: Decimal = Field(..., gt=0, decimal_places=2)
     is_saved: bool = False
 
     @field_validator('title', 'description')
@@ -35,9 +47,6 @@ class ProductBase(BaseModel):
     def price_must_be_positive(cls, v):
         if v <= 0:
             raise ValueError('Price must be positive')
-        # Check decimal places (reject more than 2 decimal places)
-        if round(v, 2) != v:
-            raise ValueError('Price can have at most 2 decimal places')
         return v
 
 class ProductCreate(ProductBase):
@@ -46,17 +55,24 @@ class ProductCreate(ProductBase):
 class ProductUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
-    price: Optional[float] = None
+    price: Optional[Decimal] = Field(None, decimal_places=2)
     is_saved: Optional[bool] = None
     category_id: Optional[int] = None
 
-class ProductRead(ProductBase):
+class ProductRead(BaseModel):
     id: int
+    title: str
+    description: str
+    price: float  # Always returned as float for JSON compatibility
+    is_saved: bool
     category_id: int
     image_url: Optional[str] = None  # Generated URL for frontend
     created_at: datetime
     updated_at: datetime
     category: Optional[CategoryRead] = None
+    # Currency conversion fields
+    currency: Optional[CurrencyCode] = None  # Currency of the returned price
+    original_price: Optional[float] = None  # Original price in USD
 
 class ProductReadWithCategory(ProductRead):
     category: CategoryRead

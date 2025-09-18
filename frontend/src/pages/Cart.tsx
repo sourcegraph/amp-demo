@@ -5,9 +5,11 @@ import CartItem from "../components/CartItem/CartItem";
 import CartItemMobile from "../components/CartItem/CartItemMobile";
 import MotionBox from "../components/MotionBox";
 import { useGlobalContext } from "../context/useGlobalContext";
+import { useCurrency } from "../context/CurrencyContext";
 
 const Cart = () => {
   const { products, totalPrice } = useGlobalContext();
+  const { formatPrice } = useCurrency();
   const productsInCart = products.flatMap(product =>
     product.inCart === true ? product : []
   );
@@ -68,7 +70,7 @@ const Cart = () => {
               Total:
             </Text>
             <Box as="span" fontWeight="bold" color="appBlue.600" fontSize="xl">
-              ${totalPrice.toFixed(2)}
+              {formatPrice(totalPrice)}
             </Box>
           </Flex>
           <HStack spacing={4} alignSelf="flex-end">

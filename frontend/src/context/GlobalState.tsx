@@ -1,6 +1,7 @@
 import { useToast } from "@chakra-ui/react";
 import { FC, ReactNode, createContext, useEffect, useState } from "react";
 import seed from "./products.json";
+import { Currency, useCurrency } from "./CurrencyContext";
 
 type Product = {
   id: string | number;
@@ -10,6 +11,9 @@ type Product = {
   image_url?: string;  // Changed from 'image' to 'image_url'
   category: string;
   isSaved?: boolean;
+  // Currency conversion fields
+  currency?: Currency;  // Currency of the returned price
+  original_price?: string | number;  // Original price in USD
 };
 
 export type ProductInCart = Product & {
@@ -47,7 +51,7 @@ type ContextType = {
   decrementQty: (id: number | string) => void;
   incrementQty: (id: number | string) => void;
   toggleSaved: (id: number | string) => void;
-  fetchProducts: () => Promise<void>;
+  fetchProducts: (currency?: Currency) => Promise<void>;
   isLoading: boolean;
 };
 
@@ -57,8 +61,9 @@ interface Props {
 // Create context
 export const GlobalContext = createContext<ContextType | null>(null);
 
-// Provider component
-export const Provider: FC<Props> = ({ children }) => {
+// Inner Provider component that uses currency context
+const InnerProvider: FC<Props> = ({ children }) => {
+  const { currency } = useCurrency();
   const toast = useToast();
   const [products, setProducts] = useState<ProductType[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -95,12 +100,16 @@ export const Provider: FC<Props> = ({ children }) => {
     }
   };
 
-  // Fetch products
-  const fetchProducts = async () => {
+  // Fetch products with currency support
+  const fetchProducts = async (currency?: Currency) => {
     try {
       setIsLoading(true);
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8001";
-      const response = await fetch(`${API_BASE_URL}/products`);
+      const url = new URL(`${API_BASE_URL}/products`);
+      if (currency) {
+        url.searchParams.set('currency', currency);
+      }
+      const response = await fetch(url.toString());
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -125,6 +134,32 @@ export const Provider: FC<Props> = ({ children }) => {
       setProducts(formattedProducts);
     } catch (error) {
       console.error("Failed to fetch products:", error);
+      // Try to fetch with USD fallback if currency conversion failed
+      if (currency && currency !== "USD") {
+        console.log("Retrying with USD fallback");
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8001";
+          const response = await fetch(`${API_BASE_URL}/products`);
+          if (response.ok) {
+            const products: ProductType[] = await response.json();
+            const savedCartState = loadCartState();
+            const formattedProducts = products.map(product => {
+              const cartItem = savedCartState[product.id];
+              return {
+                ...product,
+                isSaved: product.isSaved || false,
+                inCart: cartItem?.inCart || false,
+                quantity: cartItem?.quantity || undefined,
+              };
+            });
+            setProducts(formattedProducts);
+            return;
+          }
+        } catch (retryError) {
+          console.error("USD fallback also failed:", retryError);
+        }
+      }
+      
       // Fallback to seed data if API is not available
       console.log("Using fallback seed data");
       const savedCartState = loadCartState();
@@ -145,8 +180,8 @@ export const Provider: FC<Props> = ({ children }) => {
     }
   };
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    fetchProducts(currency);
+  }, [currency]);
 
   useEffect(() => {
     // Get products in cart
@@ -261,6 +296,15 @@ export const Provider: FC<Props> = ({ children }) => {
     >
       {children}
     </GlobalContext.Provider>
+  );
+};
+
+// Main Provider component that wraps with CurrencyProvider
+export const Provider: FC<Props> = ({ children }) => {
+  return (
+    <InnerProvider>
+      {children}
+    </InnerProvider>
   );
 };
 

@@ -17,6 +17,7 @@ import Logo from "./Logo";
 import MUIBadge from "./MUI/MUIBadge";
 import SearchBar from "./SearchBar";
 import SidebarMobile from "./Sidebar/SidebarMobile";
+import CurrencySelector from "./CurrencySelector";
 
 const Header = () => {
   const { cartItemCount } = useGlobalContext();
@@ -61,7 +62,8 @@ const Header = () => {
         </Flex>
         <SearchBar display={{ base: "none", sm: "block" }} />
         <Flex justify="space-between" align="center">
-          <HStack spacing={{ base: 3, sm: 5 }}>
+          <HStack spacing={{ base: 2, sm: 3 }}>
+            <CurrencySelector size="sm" />
             <Link
               as={RouterLink}
               to={location.pathname === "/login" ? "/register" : "/login"}

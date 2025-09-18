@@ -25,11 +25,13 @@ import { Link as RouterLink, useParams } from "react-router-dom";
 import ProgressLine from "../components/Loading/ProgressLine";
 import MUIRating from "../components/MUI/MUIRating";
 import { useGlobalContext } from "../context/useGlobalContext";
+import { useCurrency } from "../context/CurrencyContext";
 import { getImageUrl } from "../context/GlobalState";
 
 const Product = () => {
   const { fetchProducts, isLoading, products, addToCart, toggleSaved } =
     useGlobalContext();
+  const { formatPrice } = useCurrency();
   // Get the url parameter (/:id) value
   const { id } = useParams();
   useEffect(() => {
@@ -113,7 +115,7 @@ const Product = () => {
               </Flex>
               <Flex align="center" mb={3}>
                 <Text fontSize="2xl" fontWeight="bold">
-                  ${product.price}{" "}
+                  {formatPrice(product.price)}{" "}
                   <Box
                     as="span"
                     textDecoration="line-through"
@@ -127,7 +129,7 @@ const Product = () => {
                     product.id === 12 ||
                     product.id === 16 ||
                     product.id === 19
-                      ? +product.price * 2
+                      ? formatPrice(+product.price * 2)
                       : null}
                   </Box>
                 </Text>

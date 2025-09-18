@@ -4,10 +4,15 @@ version: "3.9"
 x-backend-env: &backend-env
   environment:
     - DATABASE_URL=sqlite:///./store.db
+    - FX_API_KEY=${FX_API_KEY:-}
+    - ALLOWED_CURRENCIES=${ALLOWED_CURRENCIES:-USD,GBP,EUR,AUD,MXN,JPY}
+    - FX_CACHE_TTL_HOURS=${FX_CACHE_TTL_HOURS:-1}
+    - DEBUG=${DEBUG:-true}
 
 x-frontend-env: &frontend-env
   environment:
     - VITE_API_URL=http://localhost:8001
+    - VITE_DEFAULT_CURRENCY=${VITE_DEFAULT_CURRENCY:-USD}
 
 # ───── services ───────────────────────────────────────────────────────
 services:
@@ -16,9 +21,6 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     <<: *backend-env
-    environment:
-      - DATABASE_URL=sqlite:///./store.db
-      - DEBUG=true
     command: uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
     ports: ["8001:8001"]
     volumes:
@@ -36,8 +38,6 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     <<: *frontend-env
-    environment:
-      - VITE_API_URL=http://localhost:8001
     command: npm run dev -- --host 0.0.0.0
     ports: ["3001:3001"]
     volumes:

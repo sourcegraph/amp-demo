@@ -1,8 +1,9 @@
 from sqlmodel import SQLModel, create_engine, Session
 from sqlalchemy import text
-import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./store.db")
+from .config import settings
+
+DATABASE_URL = settings.database_url
 engine = create_engine(
     DATABASE_URL, 
     connect_args={

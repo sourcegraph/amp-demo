@@ -14,10 +14,14 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { BiTrash } from "react-icons/bi";
-import { BsHeart as HeartIcon, BsHeartFill as HeartIconFill } from "react-icons/bs";
+import {
+  BsHeart as HeartIcon,
+  BsHeartFill as HeartIconFill,
+} from "react-icons/bs";
 import { Link as RouterLink } from "react-router-dom";
 import { ProductInCart, getImageUrl } from "../../context/GlobalState";
 import { useGlobalContext } from "../../context/useGlobalContext";
+import { useCurrency } from "../../context/CurrencyContext";
 import MUISkeleton from "../MUI/MUISkeleton";
 import MotionBox from "../MotionBox";
 
@@ -30,9 +34,11 @@ const TrashIcon = chakra(BiTrash);
 
 const CartItemMobile = ({ product }: Props) => {
   const toast = useToast();
+  const { formatPrice } = useCurrency();
   const subTotal = +product.price * +product.quantity;
 
-  const { deleteFromCart, incrementQty, decrementQty, toggleSaved } = useGlobalContext();
+  const { deleteFromCart, incrementQty, decrementQty, toggleSaved } =
+    useGlobalContext();
 
   const { getInputProps, getIncrementButtonProps, getDecrementButtonProps } =
     useNumberInput();
@@ -102,7 +108,7 @@ const CartItemMobile = ({ product }: Props) => {
               </LinkOverlay>
             </Box>
             <Box mt={2} fontWeight="bold" fontSize="lg" color="appBlue.600">
-              ${subTotal.toFixed(2)}
+              {formatPrice(subTotal)}
             </Box>
           </Flex>
         </Flex>
@@ -136,7 +142,10 @@ const CartItemMobile = ({ product }: Props) => {
             px={2}
             onClick={() => deleteFromCart(product.id)}
           >
-            <TrashIcon mr={1} sx={{ "@media(max-width:365px)": { marginRight: 0 } }} />
+            <TrashIcon
+              mr={1}
+              sx={{ "@media(max-width:365px)": { marginRight: 0 } }}
+            />
             <Box
               as="span"
               fontSize="sm"
@@ -145,7 +154,13 @@ const CartItemMobile = ({ product }: Props) => {
               Remove Item
             </Box>
           </Button>
-          <HStack spacing={1} w="100px" justify="center" align="center" ml="auto">
+          <HStack
+            spacing={1}
+            w="100px"
+            justify="center"
+            align="center"
+            ml="auto"
+          >
             <Button
               size="xs"
               colorScheme="appBlue"

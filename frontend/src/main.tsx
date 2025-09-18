@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import theme from "./theme";
+import { CurrencyProvider } from "./context/CurrencyContext";
 // Remove blue outline from buttons and links
 import "focus-visible/dist/focus-visible";
 // Lazy load images
@@ -13,7 +14,9 @@ import "lazysizes/plugins/parent-fit/ls.parent-fit";
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <StrictMode>
     <ChakraProvider theme={theme}>
-      <App />
+      <CurrencyProvider>
+        <App />
+      </CurrencyProvider>
     </ChakraProvider>
   </StrictMode>
 );

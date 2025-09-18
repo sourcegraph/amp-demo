@@ -42,6 +42,25 @@ See the [DEMO.md](DEMO.md) for more information about how to effectively use thi
 - [Node.js](https://nodejs.org/) - For frontend development
 - [uv](https://docs.astral.sh/uv/) - Python package manager (backend uses Python 3.13+)
 
+## Environment Configuration
+
+The application uses environment variables for configuration. Copy `.env.example` to `.env` and customize as needed.
+
+### Currency Exchange Configuration
+
+- `FX_API_KEY`: OpenExchangeRates API key (optional - uses mock rates if not provided)
+  - Get your free API key at: https://openexchangerates.org/signup/free
+- `ALLOWED_CURRENCIES`: Comma-separated list of supported currencies (default: USD,GBP,EUR,AUD,MXN,JPY)
+- `FX_CACHE_TTL_HOURS`: Cache duration for exchange rates (default: 1 hour)
+
+### Other Configuration
+
+- `DATABASE_URL`: Database connection string (default: sqlite:///./store.db)
+- `DEBUG`: Enable debug mode (default: true)
+- `DISABLE_SCHEDULER`: Disable the FX rate update scheduler (default: false)
+- `VITE_API_URL`: Frontend API endpoint (default: http://localhost:8001)
+- `VITE_DEFAULT_CURRENCY`: Default currency for frontend (default: USD)
+
 ## Quick Start
 
 Clone the project:
@@ -49,6 +68,13 @@ Clone the project:
 ```bash
 git clone https://github.com/sourcegraph/amp-demo.git
 cd amp-demo
+```
+
+Set up environment variables (optional):
+
+```bash
+cp .env.example .env
+# Edit .env to add your OpenExchangeRates API key or customize settings
 ```
 
 Run with Docker/Podman (recommended):

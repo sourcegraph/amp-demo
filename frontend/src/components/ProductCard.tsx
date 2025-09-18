@@ -16,6 +16,7 @@ import { FaShoppingCart } from "react-icons/fa";
 import { Link as RouterLink } from "react-router-dom";
 import { ProductType, getImageUrl } from "../context/GlobalState";
 import { useGlobalContext } from "../context/useGlobalContext";
+import { useCurrency } from "../context/CurrencyContext";
 import MUIRating from "./MUI/MUIRating";
 import MotionBox from "./MotionBox";
 import { useState } from "react";
@@ -27,6 +28,7 @@ type Props = {
 
 const ProductCard = ({ product }: Props) => {
   const { addToCart, toggleSaved } = useGlobalContext();
+  const { formatPrice } = useCurrency();
   const toast = useToast();
   const [imgLoaded, setImgLoaded] = useState(false);
 
@@ -102,14 +104,14 @@ const ProductCard = ({ product }: Props) => {
         <Box>
           <Flex align="center" justify="space-between" h="38px">
             <Text fontSize="xl" fontWeight="bold" color="appBlue.600">
-              ${product.price}{" "}
+              {formatPrice(product.price)}{" "}
               <Box
                 as="span"
                 textDecoration="line-through"
                 color="blackAlpha.500"
                 fontSize="md"
               >
-                {isWithinRange(+product.id) ? +product.price * 2 : null}
+                {isWithinRange(+product.id) ? formatPrice(+product.price * 2) : null}
               </Box>
             </Text>
             <Badge colorScheme="green">
