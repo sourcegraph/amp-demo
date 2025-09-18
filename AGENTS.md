@@ -30,10 +30,6 @@
 - `just test-e2e-local` - E2E tests locally (requires: npm ci, playwright install)
 - `just test-all-local` - All tests locally
 
-### Setup Commands
-- `./backend/setup-dev.sh` - Setup backend for local testing
-- `just setup-e2e-local` - Install Playwright browsers locally
-
 ### Code Quality
 - `just check` - Lint (ruff) and type check (mypy) backend
 - `just format` - Format backend code with ruff

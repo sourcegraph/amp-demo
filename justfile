@@ -119,12 +119,12 @@ logs-follow SERVICE="backend":
 
 # Check backend code quality
 check:
-    {{CM}} run --rm backend ruff check .
-    {{CM}} run --rm backend mypy .
+    cd backend && uv run ruff check .
+    cd backend && uv run mypy .
 
 # Format backend code
 format:
-    {{CM}} run --rm backend ruff format .
+    cd backend && uv run ruff format .
 
 # Build frontend for production
 build:
