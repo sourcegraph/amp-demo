@@ -97,7 +97,73 @@ def get_category(
         "products": products_with_images
     }
 
-# Product endpoints
+# Product endpoints - order matters! Specific routes before parameterized ones
+@app.get("/products/featured", response_model=List[ProductRead])
+def get_featured_products(
+    limit: int = 5,
+    session: Session = Depends(get_session)
+):
+    """Get featured products for carousel"""
+    products = crud.get_featured_products(session, limit)
+    
+    # Convert to response format with image URLs
+    result = []
+    for product in products:
+        product_dict = {
+            "id": product.id,
+            "title": product.title,
+            "description": product.description,
+            "price": product.price,
+            "category_id": product.category_id,
+            "is_saved": product.is_saved,
+            "featured": product.featured,
+            "created_at": product.created_at,
+            "updated_at": product.updated_at,
+            "image_url": f"/products/{product.id}/image" if product.image_data else None,
+            "category": {
+                "id": product.category.id,
+                "name": product.category.name,
+                "created_at": product.category.created_at,
+                "updated_at": product.category.updated_at,
+            } if product.category else None
+        }
+        result.append(product_dict)
+    
+    return result
+
+@app.get("/products/popular", response_model=List[ProductRead])
+def get_popular_products(
+    limit: int = 10,
+    session: Session = Depends(get_session)
+):
+    """Get popular products (fallback: newest products)"""
+    products = crud.get_popular_products(session, limit)
+    
+    # Convert to response format with image URLs
+    result = []
+    for product in products:
+        product_dict = {
+            "id": product.id,
+            "title": product.title,
+            "description": product.description,
+            "price": product.price,
+            "category_id": product.category_id,
+            "is_saved": product.is_saved,
+            "featured": product.featured,
+            "created_at": product.created_at,
+            "updated_at": product.updated_at,
+            "image_url": f"/products/{product.id}/image" if product.image_data else None,
+            "category": {
+                "id": product.category.id,
+                "name": product.category.name,
+                "created_at": product.category.created_at,
+                "updated_at": product.category.updated_at,
+            } if product.category else None
+        }
+        result.append(product_dict)
+    
+    return result
+
 @app.post("/products", response_model=ProductRead)
 def create_product(
     product: ProductCreate,
@@ -118,6 +184,7 @@ def create_product(
         "price": created_product.price,
         "category_id": created_product.category_id,
         "is_saved": created_product.is_saved,
+        "featured": created_product.featured,
         "created_at": created_product.created_at,
         "updated_at": created_product.updated_at,
         "image_url": f"/products/{created_product.id}/image" if created_product.image_data else None,
@@ -128,9 +195,10 @@ def create_product(
 @app.get("/products", response_model=List[ProductRead])
 def get_products(
     category_id: Optional[int] = None,
+    featured_only: bool = False,
     session: Session = Depends(get_session)
 ):
-    products = crud.get_products(session, category_id)
+    products = crud.get_products(session, category_id, featured_only)
     
     # Convert to response format with image URLs
     result = []
@@ -142,6 +210,7 @@ def get_products(
             "price": product.price,
             "category_id": product.category_id,
             "is_saved": product.is_saved,
+            "featured": product.featured,
             "created_at": product.created_at,
             "updated_at": product.updated_at,
             "image_url": f"/products/{product.id}/image" if product.image_data else None,
@@ -173,6 +242,7 @@ def get_product(
         "price": product.price,
         "category_id": product.category_id,
         "is_saved": product.is_saved,
+        "featured": product.featured,
         "created_at": product.created_at,
         "updated_at": product.updated_at,
         "image_url": f"/products/{product.id}/image" if product.image_data else None,
@@ -210,6 +280,7 @@ def update_product(
         "price": updated_product.price,
         "category_id": updated_product.category_id,
         "is_saved": updated_product.is_saved,
+        "featured": updated_product.featured,
         "created_at": updated_product.created_at,
         "updated_at": updated_product.updated_at,
         "image_url": f"/products/{product_id}/image" if updated_product.image_data else None,
