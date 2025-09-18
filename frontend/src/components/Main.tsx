@@ -20,9 +20,29 @@ type Props = {
 };
 
 const Main = ({ children }: Props) => {
-  const { savedItemsCount } = useGlobalContext();
+  const { 
+    savedItemsCount, 
+    products, 
+    categoryFilter, 
+    priceSort, 
+    nameSort,
+    setCategoryFilter,
+    setPriceSort,
+    setNameSort
+  } = useGlobalContext();
   const [isLargerThan567] = useMediaQuery("(min-width: 567px)");
   const location = useLocation();
+
+  // Get unique categories from products
+  const categories = Array.from(
+    new Set(
+      products.map(product => 
+        typeof product.category === 'string' 
+          ? product.category 
+          : product.category?.name
+      ).filter(Boolean)
+    )
+  );
 
   return (
     <Box
@@ -46,8 +66,15 @@ const Main = ({ children }: Props) => {
               rounded="base"
               borderColor="gray.500"
               cursor="pointer"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
             >
-              <option value="option1">Category</option>
+              <option value="all">All Categories</option>
+              {categories.map(category => (
+                <option key={category} value={category}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </option>
+              ))}
             </Select>
           </FormControl>
           <FormControl w="fit-content">
@@ -57,8 +84,12 @@ const Main = ({ children }: Props) => {
               rounded="base"
               borderColor="gray.400"
               cursor="pointer"
+              value={priceSort}
+              onChange={(e) => setPriceSort(e.target.value)}
             >
-              <option value="option1">Shipping</option>
+              <option value="none">Sort by Price</option>
+              <option value="low-to-high">Price: Low to High</option>
+              <option value="high-to-low">Price: High to Low</option>
             </Select>
           </FormControl>
           <FormControl w="fit-content">
@@ -68,8 +99,12 @@ const Main = ({ children }: Props) => {
               rounded="base"
               borderColor="gray.400"
               cursor="pointer"
+              value={nameSort}
+              onChange={(e) => setNameSort(e.target.value)}
             >
-              <option value="option1">Delivery options</option>
+              <option value="none">Sort by Name</option>
+              <option value="a-to-z">Name: A to Z</option>
+              <option value="z-to-a">Name: Z to A</option>
             </Select>
           </FormControl>
         </HStack>

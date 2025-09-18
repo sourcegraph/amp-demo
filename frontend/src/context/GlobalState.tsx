@@ -8,7 +8,7 @@ type Product = {
   description: string;
   price: string | number;
   image_url?: string;  // Changed from 'image' to 'image_url'
-  category: string;
+  category: string | { name: string; id: number };
   isSaved?: boolean;
 };
 
@@ -38,6 +38,7 @@ export const getImageUrl = (product: ProductType): string => {
 
 type ContextType = {
   products: ProductType[];
+  filteredProducts: ProductType[];
   cartItemCount: number;
   totalPrice: number;
   savedItemsCount: number;
@@ -49,6 +50,12 @@ type ContextType = {
   toggleSaved: (id: number | string) => void;
   fetchProducts: () => Promise<void>;
   isLoading: boolean;
+  categoryFilter: string;
+  priceSort: string;
+  nameSort: string;
+  setCategoryFilter: (category: string) => void;
+  setPriceSort: (sort: string) => void;
+  setNameSort: (sort: string) => void;
 };
 
 interface Props {
@@ -61,10 +68,14 @@ export const GlobalContext = createContext<ContextType | null>(null);
 export const Provider: FC<Props> = ({ children }) => {
   const toast = useToast();
   const [products, setProducts] = useState<ProductType[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ProductType[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [cartItemCount, setCartItemCount] = useState(0);
   const [savedItemsCount, setSavedItemsCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [priceSort, setPriceSort] = useState<string>("none");
+  const [nameSort, setNameSort] = useState<string>("none");
 
   // Load cart state from localStorage
   const loadCartState = () => {
@@ -147,6 +158,37 @@ export const Provider: FC<Props> = ({ children }) => {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  // Filter and sort products when filters change
+  useEffect(() => {
+    let filtered = products;
+
+    // Filter by category
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter(product => {
+        const categoryName = typeof product.category === 'string' 
+          ? product.category 
+          : product.category?.name;
+        return categoryName?.toLowerCase() === categoryFilter.toLowerCase();
+      });
+    }
+
+    // Sort by price
+    if (priceSort === "low-to-high") {
+      filtered = [...filtered].sort((a, b) => +a.price - +b.price);
+    } else if (priceSort === "high-to-low") {
+      filtered = [...filtered].sort((a, b) => +b.price - +a.price);
+    }
+
+    // Sort by name
+    if (nameSort === "a-to-z") {
+      filtered = [...filtered].sort((a, b) => a.title.localeCompare(b.title));
+    } else if (nameSort === "z-to-a") {
+      filtered = [...filtered].sort((a, b) => b.title.localeCompare(a.title));
+    }
+
+    setFilteredProducts(filtered);
+  }, [products, categoryFilter, priceSort, nameSort]);
 
   useEffect(() => {
     // Get products in cart
@@ -246,6 +288,7 @@ export const Provider: FC<Props> = ({ children }) => {
     <GlobalContext.Provider
       value={{
         products,
+        filteredProducts,
         cartItemCount,
         totalPrice,
         savedItemsCount,
@@ -257,6 +300,12 @@ export const Provider: FC<Props> = ({ children }) => {
         toggleSaved,
         fetchProducts,
         isLoading,
+        categoryFilter,
+        priceSort,
+        nameSort,
+        setCategoryFilter,
+        setPriceSort,
+        setNameSort,
       }}
     >
       {children}

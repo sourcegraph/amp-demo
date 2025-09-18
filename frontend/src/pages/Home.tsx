@@ -7,7 +7,7 @@ import { useGlobalContext } from "../context/useGlobalContext";
 import { searchTags } from "../mockDB/db";
 
 const Home = () => {
-  const { products, isLoading } = useGlobalContext();
+  const { filteredProducts, isLoading } = useGlobalContext();
   return (
     <Main>
       <HStack p={3} mb={5} spacing={2} flexWrap="wrap">
@@ -25,7 +25,7 @@ const Home = () => {
           ? Array(20)
               .fill("")
               .map((_, i) => <LoadingProduct key={i} />)
-          : products.map(product => <ProductCard key={product.id} product={product} />)}
+          : filteredProducts.map(product => <ProductCard key={product.id} product={product} />)}
       </ProductsGrid>
     </Main>
   );
