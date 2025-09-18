@@ -10,6 +10,7 @@ type Product = {
   image_url?: string;  // Changed from 'image' to 'image_url'
   category: string;
   isSaved?: boolean;
+  featured?: boolean;
 };
 
 export type ProductInCart = Product & {

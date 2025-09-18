@@ -62,6 +62,9 @@ def seed_products(session: Session, products: list, category_map: dict):
             print(f"⏭️  Product '{product_data['title']}' already exists (ID: {product_data['id']})")
             continue
         
+        # Determine if product should be featured (first 3 products of each category)
+        featured = product_data['id'] in [1, 5, 9, 13, 17]  # Feature some products from different categories
+        
         # Create new product
         new_product = Product(
             id=product_data['id'],
@@ -69,7 +72,8 @@ def seed_products(session: Session, products: list, category_map: dict):
             description=product_data['description'],
             price=float(product_data['price']),
             category_id=category_map[product_data['category']],
-            is_saved=False
+            is_saved=False,
+            featured=featured
         )
         
         session.add(new_product)

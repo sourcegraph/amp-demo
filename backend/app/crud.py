@@ -31,11 +31,35 @@ def create_product(session: Session, product: ProductCreate) -> Product:
     session.refresh(db_product)
     return db_product
 
-def get_products(session: Session, category_id: Optional[int] = None) -> List[Product]:
+def get_products(session: Session, category_id: Optional[int] = None, featured_only: bool = False) -> List[Product]:
     from sqlmodel import select
     statement = select(Product).join(Category)
     if category_id:
         statement = statement.where(Product.category_id == category_id)
+    if featured_only:
+        statement = statement.where(Product.featured)
+    return list(session.exec(statement).all())
+
+def get_featured_products(session: Session, limit: int = 5) -> List[Product]:
+    """Get featured products for carousel"""
+    from sqlmodel import select
+    statement = (
+        select(Product)
+        .join(Category)
+        .where(Product.featured)
+        .limit(limit)
+    )
+    return list(session.exec(statement).all())
+
+def get_popular_products(session: Session, limit: int = 10) -> List[Product]:
+    """Get popular products (fallback: newest products)"""
+    from sqlmodel import select, desc
+    statement = (
+        select(Product)
+        .join(Category)
+        .order_by(desc(Product.created_at))
+        .limit(limit)
+    )
     return list(session.exec(statement).all())
 
 def get_product(session: Session, product_id: int) -> Optional[Product]:
