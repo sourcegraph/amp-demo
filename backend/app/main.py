@@ -199,35 +199,23 @@ def get_products_api(
     stmt = stmt.options(selectinload(cast(Any, Product.category)))
     
     if sort == "delivery_fastest":
-        if deliveryOptionId:
-            delivery_stmt = select(DeliveryOption).where(DeliveryOption.id == deliveryOptionId)
-            delivery_option = session.exec(delivery_stmt).first()
-            if delivery_option:
-                if delivery_option.speed.value == "express":
-                    stmt = stmt.join(ProductDeliveryLink).join(DeliveryOption).order_by(
-                        cast(ColumnElement[int], DeliveryOption.estimated_days_min).asc(),
-                        cast(ColumnElement[float], Product.price).asc()
-                    )
-                else:
-                    stmt = stmt.join(ProductDeliveryLink).join(DeliveryOption).order_by(
-                        cast(ColumnElement[int], DeliveryOption.estimated_days_min).asc(),
-                        cast(ColumnElement[float], Product.price).asc()
-                    )
-            else:
-                stmt = stmt.order_by(cast(ColumnElement, Product.created_at).desc())
-        else:
-            stmt = stmt.join(ProductDeliveryLink).join(DeliveryOption).order_by(
-                cast(ColumnElement[int], DeliveryOption.estimated_days_min).asc(),
-                cast(ColumnElement[float], Product.price).asc()
+        products = session.exec(stmt).unique().all()
+        products = sorted(
+            products,
+            key=lambda p: (
+                min((opt.estimated_days_min for opt in p.delivery_options if opt.is_active), default=999),
+                p.price
             )
+        )
     elif sort == "price_asc":
         stmt = stmt.order_by(cast(ColumnElement[float], Product.price).asc())
+        products = session.exec(stmt).unique().all()
     elif sort == "price_desc":
         stmt = stmt.order_by(cast(ColumnElement[float], Product.price).desc())
+        products = session.exec(stmt).unique().all()
     else:  # created_desc (default)
         stmt = stmt.order_by(cast(ColumnElement, Product.created_at).desc())
-    
-    products = session.exec(stmt).all()
+        products = session.exec(stmt).unique().all()
     
     # Convert to response format
     result = []
