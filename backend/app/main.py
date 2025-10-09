@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
@@ -10,6 +11,13 @@ import io
 import os
 
 from .db import get_session, create_db_and_tables
+from .logging_config import setup_logging
+from .middleware import TraceLoggingMiddleware
+from .error_handling import (
+    validation_exception_handler,
+    http_exception_handler,
+    unhandled_exception_handler
+)
 
 from .schemas import (
     ProductRead, ProductCreate, ProductUpdate,
@@ -41,6 +49,7 @@ def calculate_delivery_summary(delivery_options: List[DeliveryOption]) -> Option
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    setup_logging()
     create_db_and_tables()
     yield
     # Shutdown (if needed)
@@ -62,9 +71,17 @@ app.add_middleware(
     allow_origins=[o.strip() for o in origins if o.strip()],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
+    allow_headers=["Content-Type", "Authorization", "traceparent", "X-Request-ID"],
+    expose_headers=["X-Request-ID", "traceparent", "Content-Type"],
 )
+
+# Trace logging middleware
+app.add_middleware(TraceLoggingMiddleware)
+
+# Exception handlers
+app.add_exception_handler(RequestValidationError, validation_exception_handler)  # type: ignore[arg-type]
+app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
+app.add_exception_handler(Exception, unhandled_exception_handler)  # type: ignore[arg-type]
 
 @app.get("/health")
 def health_check():
@@ -80,7 +97,7 @@ def create_category(
     existing_category = crud.get_category_by_name(session, category.name)
     if existing_category:
         raise HTTPException(
-            status_code=400,
+            status_code=409,
             detail=f"Category with name '{category.name}' already exists"
         )
     
@@ -155,7 +172,7 @@ def create_product(
     # Verify category exists
     category = crud.get_category(session, product.category_id)
     if not category:
-        raise HTTPException(status_code=400, detail="Category not found")
+        raise HTTPException(status_code=404, detail="Category not found")
     
     created_product = crud.create_product(session, product)
     
@@ -374,7 +391,7 @@ def update_product(
     if product_update.category_id:
         category = crud.get_category(session, product_update.category_id)
         if not category:
-            raise HTTPException(status_code=400, detail="Category not found")
+            raise HTTPException(status_code=404, detail="Category not found")
     
     updated_product = crud.update_product(session, product_id, product_update)
     if not updated_product:

@@ -89,7 +89,7 @@ def test_create_product_invalid_category(client: TestClient):
     }
     
     response = client.post("/products", json=product_data)
-    assert response.status_code == 400
+    assert response.status_code == 404
 
 def test_update_product(client: TestClient):
     """Test updating a product"""
@@ -176,7 +176,7 @@ def test_create_product_validation_errors(client: TestClient, session: Session, 
     invalid_product["category_id"] = category.id
     
     response = client.post("/products", json=invalid_product)
-    assert response.status_code == 422
+    assert response.status_code == 400
 
 
 def test_create_product_with_very_long_fields(client: TestClient, session: Session):
