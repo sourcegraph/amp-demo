@@ -207,19 +207,19 @@ def get_products_api(
                     stmt = stmt.join(ProductDeliveryLink).join(DeliveryOption).order_by(
                         cast(ColumnElement[int], DeliveryOption.estimated_days_min).asc(),
                         cast(ColumnElement[float], Product.price).asc()
-                    )
+                    ).distinct()
                 else:
                     stmt = stmt.join(ProductDeliveryLink).join(DeliveryOption).order_by(
                         cast(ColumnElement[int], DeliveryOption.estimated_days_min).asc(),
                         cast(ColumnElement[float], Product.price).asc()
-                    )
+                    ).distinct()
             else:
                 stmt = stmt.order_by(cast(ColumnElement, Product.created_at).desc())
         else:
             stmt = stmt.join(ProductDeliveryLink).join(DeliveryOption).order_by(
                 cast(ColumnElement[int], DeliveryOption.estimated_days_min).asc(),
                 cast(ColumnElement[float], Product.price).asc()
-            )
+            ).distinct()
     elif sort == "price_asc":
         stmt = stmt.order_by(cast(ColumnElement[float], Product.price).asc())
     elif sort == "price_desc":
